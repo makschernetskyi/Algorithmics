@@ -24,6 +24,33 @@ def find_nearest_to_target(target, points):
 			index = i
 	return [nearest_point, index]
 
+def get_random_centroids(data,k):
+	return random.sample(data, k)
+
+def get_plus_plus_centroids(data,k):
+	centroids = []
+	centroids.append(*random.sample(data, 1))
+	if k == 1:
+		return centroids
+
+	for i in range(k-1):
+		furthest_dist = 0
+		furthest = data[0]
+		for point in data:
+			closest_dist = get_distance(point, centroids[0])
+			for centroid in centroids:
+				dist_to_centroid = get_distance(point, centroid)
+				if dist_to_centroid<closest_dist:
+					closest_dist = dist_to_centroid
+
+			if closest_dist > furthest_dist :
+				furthest = point
+				furthest_dist = closest_dist
+		centroids.append(furthest)
+
+	return centroids
+
+
 
 
 
@@ -34,8 +61,7 @@ def k_means(data, k):
 		return []
 
 	features = len(data[0])
-	centroids = random.sample(data, k)
-
+	centroids = get_plus_plus_centroids(data, k)
 
 
 	clusters = [[] for c in centroids]
@@ -66,9 +92,6 @@ def k_means(data, k):
 			next_cycle = False
 		else:
 			centroids = new_centroids
-
-
-
 
 
 
@@ -131,11 +154,11 @@ if __name__ == '__main__':
 		[2,-1]
 	]
 
-	k_list = list(range(1,len(points_2)))
+	k_list = list(range(1,len(testpoints)))
 	SSE_list = []
 
 	for k in k_list:
-		clustered_data = k_means(points_2,k)
+		clustered_data = k_means(testpoints,k)
 		SSE_list.append(calculate_square_error(clustered_data))
 
 
@@ -147,5 +170,24 @@ if __name__ == '__main__':
 
 
 
-	clustered_data = k_means(points_2,4)
+	clustered_data = k_means(testpoints,3)
+	SSE = calculate_square_error(clustered_data)
+	for i in range(10):
+		new_clustered_data = k_means(testpoints,3)
+		new_SSE = calculate_square_error(new_clustered_data)
+		if new_SSE<SSE:
+			SSE = new_SSE
+			clustered_data = new_clustered_data
+
+
+	colors = ['red', 'blue', 'green', 'black', 'pink', 'yellow', 'lightblue']
+
+	for i, cluster in enumerate(clustered_data):
+		X = list(map(lambda p: p[0], cluster))
+		Y = list(map(lambda p: p[1], cluster))
+		plt.scatter(X,Y,color=colors[i%len(colors)])
+
+	plt.show()
+
+
 	# print(f"SSE = {calculate_square_error(clustered_data)}",'\n\n', clustered_data)
